@@ -8,10 +8,6 @@ export type configType = string | undefined | number;
 export const PORT: configType = process.env.PORT;
 
 
-//Database connection details
+//Database connection detail
+export const DATABASE_URL: string = `postgresql://${process.env.USER}:${process.env.PASSWORD}@${process.env.HOST}:${process.env.DB_PORT}/${process.env.DATABASE}`;
 
-export const DB_PORT: any = process.env.DB_PORT;
-export const HOST: any = process.env.HOST;
-export const USER: any = process.env.USER;
-export const DATABASE: any = process.env.DATABASE;
-export const PASSWORD: any = process.env.PASSWORD;

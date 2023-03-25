@@ -4,14 +4,14 @@ import morgan from 'morgan';
 import { StatusCodes } from 'http-status-codes';
 import { PORT, configType } from './configurations/configuration.variables';
 import dbConnect from './db.connection';
-import todoRoutes from './route/todo.route';
+import Routes from './route';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json())
 app.use(morgan('common'));
-app.use('/api/v1', todoRoutes);
+app.use('/api/v1', Routes);
 
 
 // app.get('/', (req, res) => {
