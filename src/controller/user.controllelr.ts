@@ -21,6 +21,7 @@ class UserController {
                 interface reqbody {
                     firstname: string,
                     middlename?: string,
+                    role?: string,
                     lastname: string,
                     email: string
                     password: string,
@@ -28,10 +29,10 @@ class UserController {
                     username: string
                 };
                 
-                const {body: {firstname, middlename, lastname, username, email, password, confirm_password}} = req; 
+                const {body: {firstname, middlename, lastname, username, email, role, password, confirm_password}} = req; 
                 let body: reqbody = {
                     firstname, middlename, lastname, username, 
-                    email, password, confirm_password
+                    email, password, confirm_password, role
                 }
 
                 if (!body.firstname || !body.lastname ||body.email, 
@@ -69,14 +70,23 @@ class UserController {
                 if (rows.length !== 0 ) {
                     return res.status(406).json({
                         status: `success`,
-                        message: `User with the email or password already exist`
+                        message: `User with the email or username already exist`
                     })
                 }
                 else {
-                    const {rows}: QueryResult<any> = await dbConnect.query('INSERT INTO users (firstname, middlename, lastname, email, username, password, confirm_password) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;', 
-                    [firstname, middlename, lastname, email, username, hashed.hashed_password, hashed.hashed_confirmed_password]);
+                    let userData: Array<object> = [];
+                    if (!role) {
+                        const {rows}: QueryResult<any> = await dbConnect.query('INSERT INTO users (firstname, middlename, lastname, email, username, password, confirm_password) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;', 
+                        [firstname, middlename, lastname, email, username, hashed.hashed_password, hashed.hashed_confirmed_password]);
+                        userData = rows;
+                    }
+                    else {
+                        const {rows}: QueryResult<any> = await dbConnect.query('INSERT INTO users (firstname, middlename, lastname, email, username, password, confirm_password, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;', 
+                        [firstname, middlename, lastname, email, username, hashed.hashed_password, hashed.hashed_confirmed_password, role]);
+                        userData = rows;
+                    }
 
-                    if (rows.length !== 0 ) {
+                    if (userData.length !== 0 ) {
                         return res.status(201).json({
                             status: `success`,
                             message: `Account successfully created`
