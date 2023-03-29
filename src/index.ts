@@ -1,6 +1,7 @@
 import express, {Request, Response, NextFunction} from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import { StatusCodes } from 'http-status-codes';
 import { PORT, configType } from './configurations/configuration.variables';
 import dbConnect from './db.connection';
@@ -9,7 +10,8 @@ import Routes from './route';
 const app = express();
 
 app.use(cors());
-app.use(express.json())
+app.use(express.json());
+app.use(cookieParser())
 app.use(morgan('common'));
 app.use('/api/v1', Routes);
 

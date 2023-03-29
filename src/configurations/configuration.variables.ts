@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 import { Secret } from 'jsonwebtoken';
-import { PoolConfig } from 'pg';
 
 dotenv.config();
 
@@ -13,6 +12,7 @@ export const PORT: configType = process.env.PORT;
 export const DATABASE_URL: string = `postgresql://${process.env.USER}:${process.env.PASSWORD}@${process.env.HOST}:${process.env.DB_PORT}/${process.env.DATABASE}`;
 
 //JWT key
-export const JWT_SECRET: Secret | string = process.env.JWT_SECRET || '';
+export const ACCESS_TOKEN_SECRET: Secret | string = process.env.ACCESS_TOKEN_SECRET || '';
+export const REFRESH_TOKEN_SECRET: Secret | string = process.env.REFRESH_TOKEN_SECRET || '';
 
 

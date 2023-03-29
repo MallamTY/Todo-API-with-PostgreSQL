@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import {JwtPayload} from "jsonwebtoken";
-import { tokenDecoder } from "../utilities/token.decoder";
+import { accessTokenDecoder } from "../utilities/token.decoder";
 import { StatusCodes } from "http-status-codes";
 
 const Authentication: RequestHandler = (req, res, next) => {
@@ -35,7 +35,7 @@ const Authentication: RequestHandler = (req, res, next) => {
             })
         }
 
-        const payload: any = tokenDecoder(token);
+        const payload: any= accessTokenDecoder(token);
         req.user = ({...payload});
         next();
         

@@ -1,11 +1,12 @@
 import { QueryResult } from 'pg';
 import { RequestHandler } from 'express';
+import jwt from 'jsonwebtoken';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
-import { encrypt } from '../utilities/encryption';
 import dbConnect from '../db.connection';
 import { StatusCodes } from 'http-status-codes';
-import { generateToken } from '../utilities/token.generator';
+import { generateAccessToken, generateRefreshToken } from '../utilities/token.generator';
+import { REFRESH_TOKEN_SECRET } from '../configurations/configuration.variables';
 
 
 class AuthController {
@@ -66,29 +67,95 @@ class AuthController {
                     }
 
                     else {
-                        let token = '';
+                        let access_token = '';
+                        let refresh_token = '';
                         if (email) {
-                            token = generateToken(rows[0].id, rows[0].role, rows[0].email);
+                            const a_token = generateAccessToken(rows[0].id, rows[0].role, '', rows[0].email);
+                            const r_token = generateRefreshToken(rows[0].id, rows[0].role,'', rows[0].email)
+                            access_token = a_token;
+                            refresh_token = r_token;
+                            
                         }
 
                         else {
-                            token = generateToken(rows[0].id, rows[0].role, rows[0].username)
+                            const a_token = generateAccessToken(rows[0].id, rows[0].role, rows[0].username);
+                            const r_token = generateRefreshToken(rows[0].id, rows[0].role, rows[0].username)
+                            access_token = a_token;
+                            refresh_token = r_token;
                         }
+
+                        res.cookie('jwt', refresh_token, { httpOnly: true, secure: true, 
+                            sameSite: 'none',
+                            maxAge: 2 * 60 * 60 * 1000 });
+                    
                         return res.status(StatusCodes.OK).json({
                             status: `success`,
                             message: `Login successful`,
-                            token
+                            access_token
+                            
                         })
                     }
-                }
 
+                }
             
             } catch (error: any) {
-                return res.status(500).json({
+                return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
                     status: `error`,
                     message: error.message
                 })
             }
+        }
+
+        /**
+         * Refresh
+         */
+        public Refresh: RequestHandler = async(req, res) => {
+           try {
+            if (req.cookies?.jwt) {
+                console.log(req.cookies);
+                
+                const refreshToken = req.cookies.jwt;
+               
+                
+                if (!refreshToken) {
+                    return res.status(StatusCodes.EXPECTATION_FAILED).json({
+                        status: `failed`,
+                        message: `Error generating refreshed jwt`
+                    })
+                }
+
+                jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, async(err: any, decodedToken: any) => {
+                    if (err) {
+                        return res.status(StatusCodes.EXPECTATION_FAILED).json({
+                            status: `failed`,
+                            message: `Error generating refreshed jwt`
+                        })
+                    }
+                        let access_token = '';
+                        if (decodedToken.email) {
+                            const a_token = generateAccessToken(decodedToken.id, decodedToken.role, decodedToken.email);
+                            access_token = a_token;
+                        }
+
+                        else {
+                            const a_token = generateAccessToken(decodedToken.id, decodedToken.role, decodedToken.username);
+                            access_token = a_token;
+                        }
+
+                        return res.status(StatusCodes.OK).json({
+                            status: `success`,
+                            message: `Login successful`,
+                            access_token
+                            
+                        })
+                })
+            }
+           } catch (error: any) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                status: `failed`,
+                message: error.message
+            })
+           }
         }
 }
 
